@@ -1,22 +1,42 @@
+# settings.yaml
 
 filters_list:
-  - F070W
-  # - F090W
-  # - F115W
-  # - F150W
-  # - F200W
-  # - F277W
-  # - F356W
+#   - F070W
+  - F090W
+#   - F115W
+#   - F140M
+#   - F150W
+#   - F162M
+#   - F164N
+#   - F150W2
+#   - F182M
+#   - F187N
+#   - F200W
+#   - F210M
+#   - F212N
+#   - F250M
+#   - F277W
+#   - F323N
+#   - F322W2
+#   - F335M
+#   - F356W
+#   - F360M
+#   - F405N
+#   - F410M
+#   - F430M
 #   - F444W
+#   - F460M
+#   - F466N
+#   - F470N
+#   - F480M
 
 all:
-    workspace_dir: '/Users/wuguocheng/workshop/jwst'
+    workspace_dir: '/mnt/petrelfs/wuguocheng/JWST_process'
 jwst:
     download_cfg:
         metainfo_tag: 'jwst_meta'
         download_tag: 'jwst_data'
         max_threads: 5                 
-        fits_output_directory: './output' 
     catalog_cfg:
         calib_level: 3
         dataproduct_type: image
@@ -24,4 +44,3 @@ jwst:
         obs_collection: JWST
         output_file: 'nircam_observation_fits_files_with_dataURI.csv'
         output_format: 'csv'
-

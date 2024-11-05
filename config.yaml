@@ -1,0 +1,27 @@
+
+filters_list:
+  - F070W
+  # - F090W
+  # - F115W
+  # - F150W
+  # - F200W
+  # - F277W
+  # - F356W
+#   - F444W
+
+all:
+    workspace_dir: '/Users/wuguocheng/workshop/jwst'
+jwst:
+    download_cfg:
+        metainfo_tag: 'jwst_meta'
+        download_tag: 'jwst_data'
+        max_threads: 5                 
+        fits_output_directory: './output' 
+    catalog_cfg:
+        calib_level: 3
+        dataproduct_type: image
+        intentType: SCIENCE
+        obs_collection: JWST
+        output_file: 'nircam_observation_fits_files_with_dataURI.csv'
+        output_format: 'csv'
+

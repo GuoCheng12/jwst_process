@@ -58,6 +58,7 @@ for filt in filters_list:
     for obs in tqdm(obs_table, desc=f"Retrieving product list for filter {filt}"):
         single_product = Observations.get_product_list(obs['obsid'])
         product_list.append(single_product)
+        break
 
     products = vstack(product_list)
     products_df = Table(products).to_pandas()
@@ -86,6 +87,7 @@ def save_metadata_to_json(observation_id, group):
             "filter": row['Filters'],
             "ra": str(row['RA']),
             "dec": str(row['Dec']),
+            "dataURI": row['dataURI'],  # 添加 dataURI 字段
             "meta": {
                 "calibration_level": catalog_cfg['calib_level'],
                 "instrument_name": row['Instrument'],
@@ -96,10 +98,13 @@ def save_metadata_to_json(observation_id, group):
     with open(json_path, 'w') as f:
         json.dump(meta_infos, f, indent=4)
 
-    print(f"Saved metadata JSON for {observation_id} at {json_path}")
+    print(f"Saved metadata JSON with dataURI for {observation_id} at {json_path}")
 
+# 根据 Observation ID 分组，保存每个组的 JSON 文件
 for observation_id, group in final_df.groupby("Observation ID"):
     save_metadata_to_json(observation_id, group)
+
+print("All JSON files with dataURI saved.")
 
 # 下载文件函数
 def download_and_upload_to_ceph(data_uri, filename, download_directory, observation_id):
@@ -136,8 +141,19 @@ def download_and_upload_to_ceph(data_uri, filename, download_directory, observat
     except Exception as e:
         print(f"Error downloading {filename}: {e}")
 
-# 分组并多线程下载 .fits 文件
+
+start_id = 'jw01187-c1007_t003_nircam_clear-f070w'
+start_download = False
+
+
 for observation_id, group in final_df.groupby("Observation ID"):
+    # 检查是否达到了开始下载的 ID
+    if not start_download:
+        if observation_id == start_id:
+            start_download = True  # 达到目标 ID，开始下载
+        else:
+            continue  # 跳过当前 ID
+
     group_dir = os.path.join(download_tag, observation_id)
     with ThreadPoolExecutor(max_workers=download_cfg['max_threads']) as executor:
         futures = {
@@ -158,19 +174,3 @@ print("All downloads complete!")
 
 
 
-def download_vlt_one_group(one_group_ids):
-    for one_id in tqdm(one_group_ids, disable=True):
-        save_path = os.path.join(target_download_dir, one_id)
-        os.makedirs(save_path, exist_ok=True)
-        if len(os.listdir(save_path)) > 0 and cfg['vlt']['download_cfg']['skip_exist']:
-            continue
-        try:
-            save_file = os.path.join(save_path, '{}.fits'.format(one_id))
-            open_proxy()
-            os.system('curl -o {1} https://dataportal.eso.org/dataportal_new/file/{0}'.format(one_id, save_file))
-            close_proxy()
-            os.system('aws s3 cp {} s3://astro_vlt/{}/ --profile ai4bio_hdd --endpoint-url=http://10.140.27.254:80'.format(save_file, one_id))
-            os.system('rm -rf {}'.format(save_file))
-            open_proxy()
-        except:
-            print('{} cannot be downloaded'.format(one_id))
